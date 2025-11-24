@@ -1,0 +1,232 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage[margin=1in]{geometry}
+\title{CS 4650/7650 ECE 4655/7655 Digital Image Processing 2025 Homework 4: Detection and Segmentation of the structures of interest}
+\author{David Allen Stephan Marino}
+\begin{document}
+\maketitle
+\newpage
+\section{Experiments and Results}
+\subsection{Blob Detection}
+\subsubsection{Preprocessing}
+\begin{figure}[htbp]
+	\centering
+	\begin{subfigure}{0.35\textwidth}
+		\includegraphics[width=\linewidth]{../images/CancerCells-1.jpg}
+		\caption{Cancer Cells Original}
+	\end{subfigure}
+	\begin{subfigure}{0.35\textwidth}
+		\includegraphics[width=\linewidth]{../images/kidneytumorglomus.jpg}
+		\caption{Kidney Tumor Glomus Original}
+	\end{subfigure}
+	\caption{Original Images}
+\end{figure}
+\begin{figure}[htbp]
+	\centering
+	\begin{subfigure}{0.35\textwidth}
+		\includegraphics[width=\linewidth]{../images/cancer_gaussian.png}
+		\caption{Cancer Cells Gaussian 11x11}
+	\end{subfigure}
+	\begin{subfigure}{0.35\textwidth}
+		\includegraphics[width=\linewidth]{../images/kidney_gaussian.png}
+		\caption{Kidney Tumor Gaussian 5x5}
+	\end{subfigure}
+	\caption{Gaussian Smoothed Images}
+\end{figure}
+\begin{figure}[htbp]
+	\centering
+	\begin{subfigure}{0.35\textwidth}
+		\includegraphics[width=\linewidth]{../images/cancer_median.png}
+		\caption{Cancer Cells Median 11}
+	\end{subfigure}
+	\begin{subfigure}{0.35\textwidth}
+		\includegraphics[width=\linewidth]{../images/kidney_median.png}
+		\caption{Kidney Tumor Glomus Median 5}
+	\end{subfigure}
+	\caption{Median Smoothed Images}
+\end{figure}
+\newpage
+\subsubsection{Preprocessing Discussion}
+For the cancer cell image, Gaussian filtering was applied to reduce the noise in the nuclei (green regions).
+The Median filter produced far too much element merging.
+The Gaussian filter reduced the noise within the nuclei and still upheld the integrity of the element's shape without melting into its neighbors.
+\begin{figure}[htbp]
+	\centering
+	\begin{subfigure}{0.3\textwidth}
+		\includegraphics[width=\linewidth]{../images/cancer_zoom.png}
+		\caption{Zoom}
+	\end{subfigure}
+	\begin{subfigure}{0.3\textwidth}
+		\includegraphics[width=\linewidth]{../images/cancer_gaussian_zoom.png}
+		\caption{Zoom Gaussian 11x11}
+	\end{subfigure}
+	\begin{subfigure}{0.3\textwidth}
+		\includegraphics[width=\linewidth]{../images/cancer_median_zoom.png}
+		\caption{Zoom Median 11}
+	\end{subfigure}
+	\caption{Cancer Zoom Images}
+\end{figure}
+For the kidney cells, Median filtering was used to smooth the nuclei (purple regions).
+The Median filter effectively removed noise within the nuclei while keeping the integrity of the elements' borders and shape.
+The Gaussian filter, while also effectively upholding the integrity of the elements, was not as effective in reducing the noise present within the nuclei.
+\begin{figure}[htbp]
+	\centering
+	\begin{subfigure}{0.3\textwidth}
+		\includegraphics[width=\linewidth]{../images/kidney_zoom.png}
+		\caption{Zoom}
+	\end{subfigure}
+	\begin{subfigure}{0.3\textwidth}
+		\includegraphics[width=\linewidth]{../images/kidney_gaussian_zoom.png}
+		\caption{Zoom Gaussian 5x5}
+	\end{subfigure}
+	\begin{subfigure}{0.3\textwidth}
+		\includegraphics[width=\linewidth]{../images/kidney_median_zoom.png}
+		\caption{Zoom Median 5}
+	\end{subfigure}
+	\caption{Kidney Zoom Images}
+\end{figure}
+\newpage
+
+\subsection{Blob Detection}
+\subsubsection{Cancer Blob Detection}
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\linewidth]{../images/cancer_ggray.png}
+	\caption{Grayscale Green Channel}
+\end{figure}
+Determined that the cancer cells' green channel best isolated the nuclei.
+This removed much of the noise present in the other regions of the cells.
+\newpage
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\linewidth]{../images/cancer_LoG.png}
+	\caption{Laplacian of Gaussian}
+\end{figure}
+At sigma 29.0, the nuclei of the cancer cells were best detected and isolated.
+We apply LoG filter with sigma 5.0 because the elements of interest are relatively small.
+However, melting is still seen in very dense regions.
+Adjusting the shape of the nuclei using morphology techniques could prove helpful in further isolating these elements.
+\newpage
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\linewidth]{../images/cancer_binary.png}
+	\caption{Binary Detection Mask}
+\end{figure}
+The binary detection mask does a good job of isolating the nuclei.
+It reduces the area of the elements themselves but more accurately isolates the elements.
+As the threshold for LoG increases, less merging is found but more false negatives.
+As the threshold for LoG decreases, more merging is found but fewer false negatives.
+The most accurate representation is found at a threshold value of 0.00075.
+\newpage
+\subsubsection{Kidney Blob Detection}
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\linewidth]{../images/kidney_inverse.png}
+	\caption{Grayscale Blue Channel Inversed}
+\end{figure}
+The kidney cells' imagery was mostly in the red spectrum without much contrast between channels.
+Since the elements of interest are the purple nuclei, the blue channel presented itself as the best option.
+This isolated the nuclei; however, since the nuclei are much lower in luminance, this meant that the LoG filter would pick up the background rather than the foreground.
+So to fix this we invert the kidney imagery before passing in to the LoG filter.
+\newpage
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\linewidth]{../images/kidney_LoG.png}
+	\caption{Laplacian of Gaussian}
+\end{figure}
+At sigma 31.0, the nuclei of the kidney cells were best detected and isolated.
+The kidney cells are larger than the ones seen in the cancer cells so a larger sigma value is used.
+The LoG filter accurately captures the elements with little to none anomalies.
+As sigma value increases false merging is present.
+As sigma value decreases false positives are found throughout.
+\newpage
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\linewidth]{../images/kidney_binary.png}
+	\caption{Binary Detection Mask}
+\end{figure}
+Applying a binary mask to the LoG filter, we isolate the nuclei (purple regions) of the kidney cells.
+The binary mask does present some false positives and false merges.
+As mentioned before, the LoG favors the high luminance regions of the background rather than the foreground.
+The most accurate representation is found at a threshold value of 0.0004.
+\newpage
+\subsection{K-Means Clustering}
+\subsubsection{Cancer K-Means Clustering}
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\linewidth]{../images/cancer_ggray.png}
+	\caption{Grayscale Green Channel Gaussian 11x11}
+\end{figure}
+Determined that the cancer cells' green channel best isolated the nuclei.
+This removed much of the noise present in the other regions of the cells.
+\newpage
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\linewidth]{../images/cancer_kmeans.png}
+	\caption{K-Means 4 Clusters 4 Iterations 11}
+\end{figure}
+The cancer cells' imagery was segmented into 4 different clusters and iterated 11 times before convergence.
+Below 4 clusters, there was not enough intermediary information, causing false merging and false negatives.
+Above 4 clusters, there was too much information and false positives presenting themselves.
+At 4 clusters, it presented the most accurate form with the least amount of false merging and false positives.
+\newpage
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\linewidth]{../images/cancer_kmeans_binary.png}
+	\caption{Binary Detection Mask Threshold Lower Bound 200}
+\end{figure}
+To isolate the nuclei in the cancer cells, a high threshold value was used.
+Since we segmented the cancer imagery into 4 clusters, thresholding was effective in creating a binary detection mask.
+The cluster count did not affect the threshold lower boundary.
+As the cluster count increased, the threshold value needed to be reduced to properly capture the elements.
+When cluster count fell below 4, however, false positives and false merges were present, as there was not enough intermediary information for thresholding to be effective.
+The results are satisfactory as there are few anomalies and accurately capture the nuclei elements of interest.
+\newpage
+\subsubsection{Kidney K-Means Clutering}
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\linewidth]{../images/kidney_rgray.png}
+	\caption{Grayscale Blue Channel Median 5}
+\end{figure}
+The kidney cells' imagery was mostly in the red spectrum without much contrast between channels.
+Since the elements of interest are the purple nuclei, the blue channel presented itself as the best option.
+\newpage
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\linewidth]{../images/kidney_kmeans.png}
+	\caption{K-Means Clusters 4 Iterations 15}
+\end{figure}
+K-Means was applied with 4 clusters and had 15 iterations before convergence.
+Below 4 clusters, there was not enough intermediary information, causing false merging and false negatives.
+Above 4 clusters, there was too much information, and false positives presented themselves.
+At 4 clusters, it presented the most accurate form with the least amount of false merging and false positives.
+\newpage
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\linewidth]{../images/kidney_kmeans_binary.png}
+	\caption{Binary Detection Mask Thresholding Lower Bound 150}
+\end{figure}
+Since the nuclear elements of interest were low in luminance, the image was inverted before thresholding.
+In comparison to the cancer cells, the kidney cells required a lower thresholding value to capture the nuclear elements.
+This is due to the color uniformity of the imagery, and a greater range needs to be captured to isolate the elements.
+The results are not very satisfactory false positives are present but there are few anomalies and accurately captures the elements of interest.
+\newpage
+\begin{itemize}
+	\item Dr. Filiz Bunyak\\
+	      \textit{Blob Detection}
+	\item Dr. Filiz Bunyak\\
+	      \textit{Segmentation}
+	\item OpenCV documentation\\
+	      \textit{https://docs.opencv.org/4.x/}.
+	\item PyPlot documentation\\
+	      \textit{https://matplotlib.org/stable/tutorials/pyplot.html}
+	\item Python documentation\\
+	      \textit{https://docs.python.org/3/}
+	\item JupyterLab documentation\\
+	      \textit{https://jupyterlab.readthedocs.io/en/latest/}
+	\item NumPy documentation\\
+	      \textit{https://numpy.org/doc/}
+\end{itemize}
+\end{document}
